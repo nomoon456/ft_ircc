@@ -6,7 +6,7 @@
 /*   By: nomoon <nomoon@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/06/07 11:32:07 by jiglesia          #+#    #+#             */
-/*   Updated: 2022/06/09 15:47:39 by nomoon           ###   ########.fr       */
+/*   Updated: 2022/06/10 16:16:55 by nomoon           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,16 @@ void    Server::server_connexion()
         std::cout << "Client Socket Not Accepted" << std::endl;
 }
 
+int Server::detect_select() {
+    int ret;
+
+    this->cpyReads = this->reads;
+    this->timeout.tv_sec = 1;
+    this->timeout.tv_usec = 1000;
+    ret = select(this->maximum + 1, &(this->cpyReads), 0, 0, &(this->timeout));
+    return (ret);
+}
+
 int Server::getFd() const {
     return this->maximum;
 }
@@ -76,4 +86,12 @@ int Server::getSocket() const {
 
 std::map<int, Client*> Server::getClient() {
     return this->clients_all;
+}
+
+fd_set  Server::getCopyReads() {
+    return this->cpyReads;
+}
+
+fd_set *Server::getCopyReadsAddress() {
+    return (&(this->cpyReads));
 }

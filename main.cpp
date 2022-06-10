@@ -10,6 +10,7 @@
 #include "client.hpp"
 #include <unistd.h>
 #include <poll.h>
+#include <sys/select.h>
 
 void    client_buffer(Server *server, char *buff_read, int fd)
 {
@@ -21,39 +22,41 @@ void    client_buffer(Server *server, char *buff_read, int fd)
 
 void    *start(Server *server)
 {
-    struct pollfd pfd;
-    pfd.events = POLLIN;
+    int nbFd;
+
     while (1)
     {
-        poll(&pfd, 1, 100);
+        if ((nbFd = server->detect_select()) == -1)
+            break;
+        if (nbFd == 0)
+            continue;
         for (int i = 0; i < server->getFd() + 1; i++)
         {
-            if (pfd.revents == POLLIN) {
-                server->server_connexion();
-            }
-            else
+            if (FD_ISSET(i, server->getCopyReadsAddress()))
             {
-                std::cout << "1" << std::endl;
-                int len;
-                char buffer[2048];
-                std::cout << "Client message " << std::endl;
-                memset(buffer, 0, 2048);
-                len = read(i, buffer, 2048);
-                std::cout << "Client message " << std::endl;
-                std::cout << "Client message " << buffer << std::endl;
-                if (len <= 0)
-                {
-                    std::cout << "ADD DECONEXION" << std::endl;
-                    break;
+                if (i == server->getSocket()) {
+                    server->server_connexion();
                 }
-                client_buffer(server, buffer, i);
-                if (len < 2048 && buffer[len -1] == '\n')
+                else
                 {
-                    std::cout << "ehhe" << std::endl;
-                    server->Sender = server->getClient().find(i)->second; //Utilisateur actuel
-                    std::cout << "Welcome " << server->Sender << std::endl;
-                    server->clients_buff.find(i)->second.clear();
-                }
+                    std::cout << "1" << std::endl;
+                    int len;
+                    char buffer[2048];
+                    memset(buffer, 0, 2048);
+                    len = read(i, buffer, 2048);
+                    std::cout << server->Sender << "sent: " << buffer << std::endl;
+                    if (len <= 0)
+                    {
+                        std::cout << "ADD DECONEXION" << std::endl;
+                        break;
+                    }
+                    client_buffer(server, buffer, i);
+                    if (len < 2048 && buffer[len -1] == '\n')
+                    {
+                        server->Sender = server->getClient().find(i)->second; //Utilisateur actuel
+                        server->clients_buff.find(i)->second.clear();
+                    }
+            }
             }
         }
     }
