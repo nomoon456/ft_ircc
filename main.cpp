@@ -6,8 +6,8 @@
 #include <string>
 #include <sstream>
 #include <fcntl.h>
-#include "server.hpp"
-#include "client.hpp"
+#include "Server.hpp"
+#include "Client.hpp"
 #include <unistd.h>
 #include <poll.h>
 #include <sys/select.h>
@@ -22,6 +22,7 @@ void    client_buffer(Server *server, char *buff_read, int fd)
 
 void    *start(Server *server)
 {
+
     int nbFd;
 
     while (1)
@@ -34,17 +35,17 @@ void    *start(Server *server)
         {
             if (FD_ISSET(i, server->getCopyReadsAddress()))
             {
+                std::cout << "ON RENTRE " << std::endl;
                 if (i == server->getSocket()) {
                     server->server_connexion();
                 }
                 else
                 {
-                    std::cout << "1" << std::endl;
                     int len;
                     char buffer[2048];
                     memset(buffer, 0, 2048);
                     len = read(i, buffer, 2048);
-                    std::cout << server->Sender << "sent: " << buffer << std::endl;
+                    std::cout << "taille: "<< len << "sent: " << buffer << std::endl;
                     if (len <= 0)
                     {
                         std::cout << "ADD DECONEXION" << std::endl;
@@ -54,6 +55,7 @@ void    *start(Server *server)
                     if (len < 2048 && buffer[len -1] == '\n')
                     {
                         server->Sender = server->getClient().find(i)->second; //Utilisateur actuel
+                        server->checkMessage(i);
                         server->clients_buff.find(i)->second.clear();
                     }
             }
