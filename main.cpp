@@ -37,6 +37,7 @@ void    *start(Server *server)
             {
                 std::cout << "ON RENTRE " << std::endl;
                 if (i == server->getSocket()) {
+                    std::cout << "Ok" << std::endl;
                     server->server_connexion();
                 }
                 else
