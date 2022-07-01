@@ -1,4 +1,4 @@
-#include "channel.hpp"
+#include "Channel.hpp"
 
 Channel::Channel(std::string const &name) : _name(name) {};
 
@@ -16,3 +16,18 @@ Channel::Channel(std::string const &name, Client &client) {
 }
 
 Channel::~Channel() {}
+
+void Channel::addUser(Client *user)
+{
+	std::list<Client*>::iterator end = this->_clients.end();
+	for (std::list<Client*>::iterator begin = this->_clients.begin(); begin != end; begin++)
+	{
+		if (user->getFd() == (*begin)->getFd())
+			return ;
+	}
+	_clients.push_back(user);
+}
+
+std::string    Channel::getChannelName(void) const {
+    return (this->_name);
+}
